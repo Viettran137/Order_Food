@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍱 Admin - Quản Lý Đặt Cơm</title>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --bg: #f5f0eb;
+            --card: #fff;
+            --primary: #e07a2f;
+            --primary-light: #fdf0e4;
+            --primary-dark: #c46820;
+            --text: #2d2a26;
+            --dim: #8c857c;
+            --border: #e8e2db;
+            --success: #3a9d5c;
+            --success-light: #e8f5ec;
+            --danger: #d64040;
+            --danger-light: #fff3f3;
+            --blue: #3b82f6;
+            --blue-light: #eff6ff;
+            --radius: 14px;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh
+        }
+
+        /* Login */
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-overlay.hidden {
+            display: none
+        }
+
+        .login-card {
+            max-width: 380px;
+            width: 100%;
+            background: var(--card);
+            border-radius: 20px;
+            padding: 36px 28px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .login-card .icon {
+            font-size: 2.8rem;
+            margin-bottom: 12px
+        }
+
+        .login-card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+            color: var(--primary)
+        }
+
+        .login-card .sub {
+            color: var(--dim);
+            font-size: 0.85rem;
+            margin-bottom: 24px
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            margin-bottom: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .login-card input:focus {
+            border-color: var(--primary)
+        }
+
+        .login-err {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: none
+        }
+
+        /* Header */
+        .top-bar {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .top-bar h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .top-bar .date {
+            font-size: 0.82rem;
+            color: var(--dim);
+            font-weight: 500
+        }
+
+        .app {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 16px
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--card);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 8px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--dim);
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(224, 122, 47, 0.3)
+        }
+
+        .tab:hover:not(.active) {
+            background: var(--primary-light);
+            color: var(--primary)
+        }
+
+        .panel {
+            display: none;
+            animation: fadeUp 0.3s ease
+        }
+
+        .panel.active {
+            display: block
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .card-sub {
+            font-size: 0.78rem;
+            color: var(--dim)
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark)
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #fff
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text)
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary)
+        }
+
+        .btn-blue {
+            background: var(--blue);
+            color: #fff
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.78rem;
+            border-radius: 8px
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed
+        }
+
+        .btn-full {
+            width: 100%
+        }
+
+        /* Forms */
+        .form-row {
+            margin-bottom: 12px
+        }
+
+        .form-row label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--dim);
+            margin-bottom: 4px
+        }
+
+        .form-row input,
+        .form-row select,
+        .form-row textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #fff;
+            color: var(--text);
+        }
+
+        .form-row input:focus,
+        .form-row select:focus,
+        .form-row textarea:focus {
+            border-color: var(--primary)
+        }
+
+        .form-row textarea {
+            resize: vertical;
+            min-height: 80px
+        }
+
+        .form-inline {
+            display: flex;
+            gap: 8px;
+            align-items: end
+        }
+
+        .form-inline .form-row {
+            flex: 1;
+            margin-bottom: 0
+        }
+
+        /* Tables */
+        .tbl-wrap {
+            overflow-x: auto;
+            margin: 0 -20px;
+            padding: 0 20px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle
+        }
+
+        tr:hover td {
+            background: #faf8f5
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .badge-active {
+            background: var(--success-light);
+            color: var(--success)
+        }
+
+        .badge-inactive {
+            background: var(--danger-light);
+            color: var(--danger)
+        }
+
+        .badge-picked {
+            background: var(--success-light);
+            color: var(--success)
+        }
+
+        .badge-waiting {
+            background: #fffbe6;
+            color: #b8860b
+        }
+
+        /* Stats */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 16px 12px;
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-card .num {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary)
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            color: var(--dim);
+            font-weight: 600;
+            margin-top: 2px
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.hidden {
+            display: none
+        }
+
+        .modal {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 440px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal h3 {
+            font-size: 1.05rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        /* Filter bar */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .filter-bar .form-row {
+            margin-bottom: 0;
+            min-width: 140px
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: var(--dim)
+        }
+
+        .empty .icon {
+            font-size: 2rem;
+            margin-bottom: 8px
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .mb-8 {
+            margin-bottom: 8px
+        }
+
+        .mb-16 {
+            margin-bottom: 16px
+        }
+
+        .mt-12 {
+            margin-top: 12px
+        }
+
+        .gap-8 {
+            gap: 8px;
+            display: flex
+        }
+
+        /* Pickup toggle */
+        .pickup-btn {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .pickup-btn.not-picked {
+            background: #fffbe6;
+            color: #b8860b
+        }
+
+        .pickup-btn.picked {
+            background: var(--success-light);
+            color: var(--success)
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--success);
+            font-weight: 600;
+            z-index: 200;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0)
+            }
+        }
+
+        @keyframes toastOut {
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px)
+            }
+        }
+
+        @media(max-width:600px) {
+            .tab {
+                font-size: 0.7rem;
+                padding: 8px 4px
+            }
+
+            .card {
+                padding: 16px
+            }
+
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr)
+            }
+
+            .filter-bar {
+                flex-direction: column
+            }
+
+            .filter-bar .form-row {
+                min-width: 100%
+            }
+
+            .form-inline {
+                flex-direction: column
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOGIN -->
+    <div class="login-overlay" id="login-overlay">
+        <div class="login-card">
+            <div class="icon">🔐</div>
+            <h2>Đăng Nhập Admin</h2>
+            <p class="sub">Quản lý đặt cơm trưa</p>
+            <input type="password" id="pw-input" placeholder="Nhập mật khẩu..."
+                onkeydown="if(event.key==='Enter')checkLogin()">
+            <div class="login-err" id="login-err">❌ Sai mật khẩu!</div>
+            <button class="btn btn-primary btn-full" onclick="checkLogin()">🚀 Đăng Nhập</button>
+            <p style="margin-top:14px;font-size:0.75rem;color:var(--dim)">Mật khẩu mặc định: admin123</p>
+        </div>
+    </div>
+
+    <!-- TOP BAR -->
+    <div class="top-bar" id="top-bar" style="display:none">
+        <h1>🍱 Quản Lý Đặt Cơm</h1>
+        <div class="date" id="top-date"></div>
+    </div>
+
+    <div class="app" id="app" style="display:none">
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('orders')">📋 Đơn hôm nay</button>
+            <button class="tab" onclick="switchTab('menu')">🍽️ Menu</button>
+            <button class="tab" onclick="switchTab('staff')">👥 Nhân sự</button>
+            <button class="tab" onclick="switchTab('stats')">📊 Thống kê</button>
+            <button class="tab" onclick="switchTab('settings')">⚙️ Cài đặt</button>
+        </div>
+
+        <!-- ==================== ORDERS PANEL ==================== -->
+        <div id="panel-orders" class="panel active">
+            <!-- Date picker -->
+            <div class="card" style="padding:14px 20px">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <span style="font-weight:700;font-size:0.9rem">📅 Xem ngày:</span>
+                    <button class="btn btn-sm btn-outline" onclick="shiftViewDate(-1)">◀ Hôm trước</button>
+                    <input type="date" id="view-date" onchange="changeViewDate()"
+                        style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-family:'Be Vietnam Pro',sans-serif;font-size:0.85rem;font-weight:600;outline:none">
+                    <button class="btn btn-sm btn-outline" onclick="shiftViewDate(1)">Hôm sau ▶</button>
+                    <button class="btn btn-sm btn-primary" onclick="goToday()">Hôm nay</button>
+                    <span style="font-weight:600;color:var(--dim);font-size:0.85rem;margin-left:auto"
+                        id="view-date-label"></span>
+                </div>
+            </div>
+
+            <!-- Stats bar -->
+            <div class="stat-grid" id="today-stats">
+                <div class="stat-card">
+                    <div class="num" id="s-total">0</div>
+                    <div class="label">Tổng đặt</div>
+                </div>
+                <div class="stat-card">
+                    <div class="num" id="s-picked">0</div>
+                    <div class="label">Đã lấy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="num" id="s-waiting">0</div>
+                    <div class="label">Chưa lấy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="num" id="s-dishes">0</div>
+                    <div class="label">Số món</div>
+                </div>
+            </div>
+
+            <!-- Dish breakdown -->
+            <div class="card" id="dish-breakdown-card">
+                <div class="card-head">
+                    <div class="card-title">🍽️ Thống kê theo từng món</div>
+                    <div class="card-sub" id="breakdown-total-label"></div>
+                </div>
+                <div id="dish-breakdown"></div>
+            </div>
+
+            <!-- Order list -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">📋 Danh sách chi tiết</div>
+                    <div class="gap-8">
+                        <select id="filter-dish" onchange="renderOrders()"
+                            style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:'Be Vietnam Pro',sans-serif;font-size:0.78rem;outline:none">
+                            <option value="">Tất cả món</option>
+                        </select>
+                        <button class="btn btn-blue btn-sm" onclick="exportDayExcel()">📥 Excel</button>
+                    </div>
+                </div>
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã NV</th>
+                                <th>Họ tên</th>
+                                <th>Món ăn</th>
+                                <th>Giờ đặt</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="empty" id="orders-empty">
+                    <div class="icon">📋</div>
+                    <p>Chưa có đơn đặt cơm</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MENU PANEL ==================== -->
+        <div id="panel-menu" class="panel">
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">🍽️ Menu hôm nay — <span id="menu-date-label"></span></div>
+                </div>
+
+                <div class="form-inline mb-16">
+                    <div class="form-row">
+                        <label>Thêm món ăn</label>
+                        <input type="text" id="new-dish" placeholder="Ví dụ: Cá hường chiên sả"
+                            onkeydown="if(event.key==='Enter')addDish()">
+                    </div>
+                    <button class="btn btn-primary" onclick="addDish()" style="margin-top:auto">+ Thêm</button>
+                </div>
+
+                <div id="menu-items-list"></div>
+
+                <div class="empty" id="menu-empty">
+                    <div class="icon">🍽️</div>
+                    <p>Chưa có món nào</p>
+                </div>
+
+                <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+                <div class="card-title mb-8">📋 Thêm nhanh nhiều món</div>
+                <div class="form-row">
+                    <textarea id="bulk-dishes"
+                        placeholder="Mỗi dòng 1 món, ví dụ:&#10;Cá hường chiên sả, Thịt ba rọi cháy cạnh&#10;Gà nướng muối ớt, Thịt ram nước dừa&#10;Thịt ba rọi cháy cạnh, Canh chua cá basa"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="bulkAddDishes()">+ Thêm tất cả</button>
+
+                <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+                <div class="card-title mb-8">📅 Copy menu từ ngày khác</div>
+                <div class="form-inline">
+                    <div class="form-row">
+                        <input type="date" id="copy-date">
+                    </div>
+                    <button class="btn btn-outline" onclick="copyMenuFrom()">📋 Copy menu</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== STAFF PANEL ==================== -->
+        <div id="panel-staff" class="panel">
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">👥 Danh sách nhân viên</div>
+                    <div class="gap-8">
+                        <button class="btn btn-primary btn-sm" onclick="showAddStaffModal()">+ Thêm NV</button>
+                        <button class="btn btn-blue btn-sm" onclick="exportStaffExcel()">📥 Excel</button>
+                    </div>
+                </div>
+
+                <div class="form-row mb-16">
+                    <input type="text" id="staff-search" placeholder="🔍 Tìm theo mã hoặc tên..."
+                        oninput="renderStaff()">
+                </div>
+
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã NV</th>
+                                <th>Họ tên</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staff-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="empty" id="staff-empty">
+                    <div class="icon">👥</div>
+                    <p>Chưa có nhân viên</p>
+                </div>
+
+                <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+                <div class="card-title mb-8">📋 Thêm nhanh nhiều nhân viên</div>
+                <div class="form-row">
+                    <textarea id="bulk-staff"
+                        placeholder="Mỗi dòng: MãNV, Họ tên&#10;Ví dụ:&#10;NV001, Nguyễn Văn A&#10;NV002, Trần Thị B&#10;NV003, Lê Văn C"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="bulkAddStaff()">+ Thêm tất cả</button>
+            </div>
+        </div>
+
+        <!-- ==================== STATS PANEL ==================== -->
+        <div id="panel-stats" class="panel">
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">📊 Thống kê đặt cơm</div>
+                    <button class="btn btn-blue btn-sm" onclick="exportStatsExcel()">📥 Xuất Excel</button>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="form-row">
+                        <label>Xem theo</label>
+                        <select id="stats-mode" onchange="loadStats()">
+                            <option value="day">Theo ngày</option>
+                            <option value="week">Theo tuần</option>
+                            <option value="month">Theo tháng</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>Từ ngày</label>
+                        <input type="date" id="stats-from" onchange="loadStats()">
+                    </div>
+                    <div class="form-row">
+                        <label>Đến ngày</label>
+                        <input type="date" id="stats-to" onchange="loadStats()">
+                    </div>
+                </div>
+
+                <div class="stat-grid" id="stats-summary"></div>
+
+                <div class="tbl-wrap">
+                    <table>
+                        <thead id="stats-thead"></thead>
+                        <tbody id="stats-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="empty" id="stats-empty">
+                    <div class="icon">📊</div>
+                    <p>Chọn khoảng thời gian để xem thống kê</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SETTINGS PANEL ==================== -->
+        <div id="panel-settings" class="panel">
+            <div class="card">
+                <div class="card-title mb-16">⚙️ Cài đặt hệ thống</div>
+
+                <div class="form-row">
+                    <label>Giờ chốt đặt cơm mỗi ngày</label>
+                    <input type="time" id="set-deadline" value="10:00">
+                </div>
+                <button class="btn btn-primary mt-12" onclick="saveSettings()">💾 Lưu cài đặt</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title mb-16">🔑 Đổi mật khẩu Admin</div>
+                <div class="form-row">
+                    <label>Mật khẩu mới</label>
+                    <input type="password" id="new-password" placeholder="Nhập mật khẩu mới...">
+                </div>
+                <div class="form-row">
+                    <label>Xác nhận mật khẩu mới</label>
+                    <input type="password" id="confirm-password" placeholder="Nhập lại mật khẩu...">
+                </div>
+                <button class="btn btn-primary mt-12" onclick="changePassword()">🔑 Đổi mật khẩu</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title mb-16" style="color:var(--danger)">⚠️ Vùng nguy hiểm</div>
+                <button class="btn btn-danger" onclick="clearTodayOrders()">🗑️ Xoá tất cả đơn hôm nay</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STAFF MODAL -->
+    <div class="modal-overlay hidden" id="staff-modal">
+        <div class="modal">
+            <h3 id="modal-title">➕ Thêm nhân viên</h3>
+            <div class="form-row">
+                <label>Mã nhân viên</label>
+                <input type="text" id="m-code" placeholder="VD: NV001">
+            </div>
+            <div class="form-row">
+                <label>Họ và tên</label>
+                <input type="text" id="m-name" placeholder="VD: Nguyễn Văn A">
+            </div>
+            <div class="form-row">
+                <label>Trạng thái</label>
+                <select id="m-active">
+                    <option value="true">Đang làm việc</option>
+                    <option value="false">Đã nghỉ việc</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:16px">
+                <button class="btn btn-outline" onclick="closeStaffModal()" style="flex:1">Huỷ</button>
+                <button class="btn btn-primary" onclick="saveStaff()" style="flex:1" id="modal-save-btn">💾 Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PICKUP MODAL -->
+    <div class="modal-overlay hidden" id="pickup-modal">
+        <div class="modal">
+            <h3>🍱 Xác nhận lấy cơm</h3>
+            <p style="color:var(--dim);margin-bottom:16px;font-size:0.9rem" id="pickup-info"></p>
+            <div class="form-row">
+                <label>Ai lấy?</label>
+                <select id="pickup-who">
+                    <option value="self">Tự lấy</option>
+                    <option value="other">Người khác lấy hộ</option>
+                </select>
+            </div>
+            <div class="form-row" id="pickup-other-group" style="display:none">
+                <label>Tên người lấy hộ</label>
+                <input type="text" id="pickup-other-name" placeholder="Nhập tên người lấy hộ...">
+            </div>
+            <div style="display:flex;gap:8px;margin-top:16px">
+                <button class="btn btn-outline" onclick="closePickupModal()" style="flex:1">Huỷ</button>
+                <button class="btn btn-success" onclick="confirmPickup()" style="flex:1">✅ Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ╔══════════════════════════════════════════════════════════╗
+        // ║  ⚠️  THAY THÔNG TIN FIREBASE VÀO ĐÂY                     ║
+        // ╚══════════════════════════════════════════════════════════╝
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOE5tHOCnxt8OJ7pqrQkJDbv8omtjz7WU",
+            authDomain: "book-com-trua.firebaseapp.com",
+            projectId: "book-com-trua",
+            storageBucket: "book-com-trua.firebasestorage.app",
+            messagingSenderId: "274863804638",
+            appId: "1:274863804638:web:66dfb24abfc8bdb0fa324f",
+            measurementId: "G-JW7E6Z7SR7"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ===== LOGIN =====
+        // SHA-256 of "admin123"
+        let PASSWORD_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
+
+        // Load password from Firebase if set
+        db.ref('settings/passwordHash').on('value', snap => {
+            if (snap.val()) PASSWORD_HASH = snap.val();
+        });
+
+        if (sessionStorage.getItem('meal_admin') === 'true') {
+            document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('top-bar').style.display = '';
+            document.getElementById('app').style.display = '';
+        }
+
+        async function sha256(msg) {
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function checkLogin() {
+            const pw = document.getElementById('pw-input').value;
+            const hash = await sha256(pw);
+            if (hash === PASSWORD_HASH) {
+                sessionStorage.setItem('meal_admin', 'true');
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('top-bar').style.display = '';
+                document.getElementById('app').style.display = '';
+            } else {
+                document.getElementById('login-err').style.display = 'block';
+            }
+        }
+
+        async function changePassword() {
+            const pw = document.getElementById('new-password').value;
+            const pw2 = document.getElementById('confirm-password').value;
+            if (!pw || pw.length < 4) { alert('Mật khẩu tối thiểu 4 ký tự'); return; }
+            if (pw !== pw2) { alert('Mật khẩu không khớp!'); return; }
+            const hash = await sha256(pw);
+            await db.ref('settings/passwordHash').set(hash);
+            PASSWORD_HASH = hash;
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+            toast('✅ Đã đổi mật khẩu!');
+        }
+
+        // ===== STATE =====
+        let employees = {};
+        let viewDateMenu = [];   // menu for currently viewed date
+        let viewDateOrders = {};  // orders for currently viewed date
+        let allOrders = {};
+        let settings = { deadline: '10:00' };
+        let editingStaffId = null;
+        let pickupEmpId = null;
+        let viewDate = getToday();  // currently viewed date in orders panel
+        let viewDateListener = null; // Firebase listener for viewed date orders
+        let viewMenuListener = null; // Firebase listener for viewed date menu
+
+        function getToday() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+
+        function getDisplayDate() {
+            const d = new Date();
+            const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+            return days[d.getDay()] + ', ' + d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+        }
+
+        function formatDateVN(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+            return days[d.getDay()] + ', ' + d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+        }
+
+        // ===== FIREBASE LISTENERS =====
+        db.ref('settings').on('value', snap => {
+            const d = snap.val();
+            if (d) {
+                if (d.deadline) settings.deadline = d.deadline;
+            }
+            document.getElementById('set-deadline').value = settings.deadline;
+        });
+
+        db.ref('employees').on('value', snap => {
+            employees = snap.val() || {};
+            renderStaff();
+        });
+
+        // Menu for today (used by menu panel)
+        db.ref('menus/' + getToday()).on('value', snap => {
+            const d = snap.val();
+            // Only update menu panel (admin editing always edits today)
+            renderMenuAdmin(d);
+            // If viewing today, also refresh orders panel menu
+            if (viewDate === getToday()) {
+                viewDateMenu = d ? Object.entries(d).map(([id, v]) => ({ id, name: typeof v === 'string' ? v : v.name })) : [];
+            }
+        });
+
+        // Load all orders for stats
+        db.ref('orders').on('value', snap => {
+            allOrders = snap.val() || {};
+        });
+
+        // Listen for viewDate orders + menu
+        function listenViewDate(date) {
+            // Remove old listeners
+            if (viewDateListener) viewDateListener();
+            if (viewMenuListener) viewMenuListener();
+
+            const ordersRef = db.ref('orders/' + date);
+            const menuRef = db.ref('menus/' + date);
+
+            const ordersCallback = ordersRef.on('value', snap => {
+                viewDateOrders = snap.val() || {};
+                renderOrders();
+            });
+
+            const menuCallback = menuRef.on('value', snap => {
+                const d = snap.val();
+                viewDateMenu = d ? Object.entries(d).map(([id, v]) => ({ id, name: typeof v === 'string' ? v : v.name })) : [];
+                renderOrders(); // re-render to update dish filter
+            });
+
+            viewDateListener = () => ordersRef.off('value', ordersCallback);
+            viewMenuListener = () => menuRef.off('value', menuCallback);
+        }
+
+        // ===== VIEW DATE CONTROLS =====
+        function changeViewDate() {
+            viewDate = document.getElementById('view-date').value;
+            document.getElementById('view-date-label').textContent = formatDateVN(viewDate);
+            listenViewDate(viewDate);
+        }
+
+        function shiftViewDate(delta) {
+            const d = new Date(viewDate + 'T00:00:00');
+            d.setDate(d.getDate() + delta);
+            viewDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            document.getElementById('view-date').value = viewDate;
+            document.getElementById('view-date-label').textContent = formatDateVN(viewDate);
+            listenViewDate(viewDate);
+        }
+
+        function goToday() {
+            viewDate = getToday();
+            document.getElementById('view-date').value = viewDate;
+            document.getElementById('view-date-label').textContent = formatDateVN(viewDate) + ' (hôm nay)';
+            listenViewDate(viewDate);
+        }
+
+        // ===== INIT =====
+        document.getElementById('top-date').textContent = getDisplayDate();
+        document.getElementById('menu-date-label').textContent = getDisplayDate();
+        document.getElementById('view-date').value = getToday();
+        document.getElementById('view-date-label').textContent = formatDateVN(getToday()) + ' (hôm nay)';
+        listenViewDate(getToday());
+
+        // Default stats dates
+        const today = new Date();
+        const weekAgo = new Date(today); weekAgo.setDate(today.getDate() - 7);
+        document.getElementById('stats-from').value = weekAgo.toISOString().split('T')[0];
+        document.getElementById('stats-to').value = getToday();
+
+        // Pickup modal toggle
+        document.getElementById('pickup-who').addEventListener('change', e => {
+            document.getElementById('pickup-other-group').style.display = e.target.value === 'other' ? '' : 'none';
+        });
+
+        // ===== TABS =====
+        function switchTab(t) {
+            const tabs = ['orders', 'menu', 'staff', 'stats', 'settings'];
+            document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === t));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panel-' + t).classList.add('active');
+            if (t === 'stats') loadStats();
+        }
+
+        // ===== ORDERS =====
+        function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML }
+
+        function renderOrders() {
+            const tbody = document.getElementById('orders-tbody');
+            const empty = document.getElementById('orders-empty');
+            const entries = Object.entries(viewDateOrders);
+            const isToday = viewDate === getToday();
+
+            // Stats
+            const total = entries.length;
+            const picked = entries.filter(([, o]) => o.pickedUp).length;
+            document.getElementById('s-total').textContent = total;
+            document.getElementById('s-picked').textContent = picked;
+            document.getElementById('s-waiting').textContent = total - picked;
+            const dishes = new Set(entries.map(([, o]) => o.dish));
+            document.getElementById('s-dishes').textContent = dishes.size;
+
+            // Dish breakdown — detailed with names
+            const breakdown = {};
+            entries.forEach(([empId, o]) => {
+                const dn = o.dishName || 'Không rõ';
+                if (!breakdown[dn]) breakdown[dn] = { count: 0, people: [] };
+                breakdown[dn].count++;
+                breakdown[dn].people.push({
+                    name: o.empName || o.empCode || '?',
+                    code: o.empCode || '',
+                    picked: !!o.pickedUp
+                });
+            });
+
+            const breakdownHTML = Object.entries(breakdown).map(([name, data]) => {
+                const peopleList = data.people.map(p =>
+                    `<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;background:#fff;border-radius:6px;font-size:0.78rem;border:1px solid var(--border);margin:2px">
+        ${p.picked ? '✅' : '⏳'} ${esc(p.name)}
+      </span>`
+                ).join('');
+
+                return `<div style="padding:14px;background:var(--primary-light);border-radius:10px;margin-bottom:8px;border-left:4px solid var(--primary)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-weight:700;font-size:0.95rem">${esc(name)}</span>
+        <span style="font-weight:800;color:var(--primary);font-size:1.1rem;background:#fff;padding:4px 12px;border-radius:20px;border:1px solid var(--border)">${data.count} phần</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:2px">${peopleList}</div>
+    </div>`;
+            }).join('');
+
+            document.getElementById('dish-breakdown').innerHTML = breakdownHTML ||
+                '<p style="color:var(--dim);font-size:0.85rem;text-align:center;padding:12px">Chưa có đơn ngày này</p>';
+            document.getElementById('breakdown-total-label').textContent = total > 0
+                ? 'Tổng: ' + total + ' phần — ' + Object.keys(breakdown).length + ' món'
+                : '';
+
+            // Dish filter dropdown
+            const filterSelect = document.getElementById('filter-dish');
+            const currentFilter = filterSelect.value;
+            filterSelect.innerHTML = '<option value="">Tất cả món (' + total + ')</option>' +
+                Object.entries(breakdown).map(([name, data]) =>
+                    `<option value="${esc(name)}" ${currentFilter === name ? 'selected' : ''}>${esc(name)} (${data.count})</option>`
+                ).join('');
+
+            // Filter entries
+            let filtered = entries;
+            if (currentFilter) {
+                filtered = entries.filter(([, o]) => (o.dishName || '') === currentFilter);
+            }
+
+            if (!filtered.length) {
+                tbody.innerHTML = '';
+                empty.style.display = total > 0 && currentFilter ? 'none' : '';
+                if (total > 0 && currentFilter && !filtered.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--dim);padding:20px">Không có đơn cho bộ lọc này</td></tr>';
+                }
+                if (!total) empty.style.display = '';
+                return;
+            }
+            empty.style.display = 'none';
+
+            tbody.innerHTML = filtered.sort((a, b) => (a[1].time || 0) - (b[1].time || 0)).map(([empId, o], i) => {
+                const time = o.time ? new Date(o.time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--';
+                const statusBadge = o.pickedUp
+                    ? `<span class="badge badge-picked">✅ Đã lấy</span>`
+                    : `<span class="badge badge-waiting">⏳ Chưa lấy</span>`;
+
+                let actionCell;
+                if (isToday) {
+                    // Only allow pickup actions for today
+                    actionCell = o.pickedUp
+                        ? `<button class="pickup-btn picked" onclick="undoPickup('${empId}')">↩️ Hoàn</button>`
+                        : `<button class="pickup-btn not-picked" onclick="showPickupModal('${empId}')">🍱 Lấy</button>`;
+                } else {
+                    actionCell = o.pickedUp
+                        ? `<span style="font-size:0.75rem;color:var(--success)">✅</span>`
+                        : `<span style="font-size:0.75rem;color:var(--dim)">—</span>`;
+                }
+
+                const pickedByInfo = o.pickedBy ? `<br><small style="color:var(--dim)">Lấy hộ: ${esc(o.pickedBy)}</small>` : '';
+
+                return `<tr>
+      <td>${i + 1}</td>
+      <td><strong>${esc(o.empCode || '')}</strong></td>
+      <td>${esc(o.empName || '')}</td>
+      <td>${esc(o.dishName || '')}</td>
+      <td>${time}</td>
+      <td>${statusBadge}${pickedByInfo}</td>
+      <td>${actionCell}</td>
+    </tr>`;
+            }).join('');
+        }
+
+        // Pickup
+        function showPickupModal(empId) {
+            pickupEmpId = empId;
+            const o = viewDateOrders[empId];
+            document.getElementById('pickup-info').textContent = (o.empName || '') + ' — ' + (o.dishName || '');
+            document.getElementById('pickup-who').value = 'self';
+            document.getElementById('pickup-other-group').style.display = 'none';
+            document.getElementById('pickup-other-name').value = '';
+            document.getElementById('pickup-modal').classList.remove('hidden');
+        }
+
+        function closePickupModal() { document.getElementById('pickup-modal').classList.add('hidden'); }
+
+        async function confirmPickup() {
+            if (!pickupEmpId) return;
+            const who = document.getElementById('pickup-who').value;
+            const otherName = document.getElementById('pickup-other-name').value.trim();
+            await db.ref('orders/' + viewDate + '/' + pickupEmpId).update({
+                pickedUp: true,
+                pickedBy: who === 'other' ? otherName : ''
+            });
+            closePickupModal();
+            toast('✅ Đã xác nhận lấy cơm');
+        }
+
+        async function undoPickup(empId) {
+            await db.ref('orders/' + viewDate + '/' + empId).update({ pickedUp: false, pickedBy: '' });
+        }
+
+        // ===== MENU =====
+        let todayMenuData = null; // raw menu data for today (admin editing)
+
+        function renderMenuAdmin(data) {
+            if (data !== undefined) todayMenuData = data;
+            const menuList = todayMenuData ? Object.entries(todayMenuData).map(([id, v]) => ({ id, name: typeof v === 'string' ? v : v.name })) : [];
+
+            const list = document.getElementById('menu-items-list');
+            const empty = document.getElementById('menu-empty');
+            if (!menuList.length) { list.innerHTML = ''; empty.style.display = ''; return; }
+            empty.style.display = 'none';
+
+            // Get today's orders for count
+            const todayOrd = allOrders[getToday()] || {};
+            const orderCounts = {};
+            Object.values(todayOrd).forEach(o => { orderCounts[o.dish] = (orderCounts[o.dish] || 0) + 1; });
+
+            list.innerHTML = menuList.map((item, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--primary-light);border-radius:10px;margin-bottom:8px">
+      <span style="font-weight:800;color:var(--primary);min-width:24px">${i + 1}</span>
+      <span style="flex:1;font-weight:600">${esc(item.name)}</span>
+      <span style="font-size:0.8rem;color:var(--dim)">${orderCounts[item.id] || 0} đặt</span>
+      <button class="btn btn-danger btn-sm" onclick="removeDish('${item.id}')" style="padding:4px 10px;font-size:0.75rem">✕</button>
+    </div>
+  `).join('');
+        }
+
+        async function addDish() {
+            const input = document.getElementById('new-dish');
+            const name = input.value.trim();
+            if (!name) return;
+            const id = 'dish_' + Date.now().toString(36);
+            await db.ref('menus/' + getToday() + '/' + id).set(name);
+            input.value = ''; input.focus();
+            toast('✅ Đã thêm: ' + name);
+        }
+
+        async function bulkAddDishes() {
+            const text = document.getElementById('bulk-dishes').value.trim();
+            if (!text) return;
+            const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+            const updates = {};
+            lines.forEach(name => { updates['dish_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5)] = name; });
+            await db.ref('menus/' + getToday()).update(updates);
+            document.getElementById('bulk-dishes').value = '';
+            toast('✅ Đã thêm ' + lines.length + ' món');
+        }
+
+        async function removeDish(id) {
+            if (!confirm('Xoá món này?')) return;
+            await db.ref('menus/' + getToday() + '/' + id).remove();
+        }
+
+        async function copyMenuFrom() {
+            const date = document.getElementById('copy-date').value;
+            if (!date) { alert('Chọn ngày cần copy!'); return; }
+            const snap = await db.ref('menus/' + date).once('value');
+            const data = snap.val();
+            if (!data) { alert('Ngày ' + date + ' không có menu!'); return; }
+            // Create new IDs
+            const updates = {};
+            Object.values(data).forEach(name => {
+                updates['dish_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5)] = typeof name === 'string' ? name : name.name;
+            });
+            await db.ref('menus/' + getToday()).update(updates);
+            toast('✅ Đã copy menu từ ' + date);
+        }
+
+        // ===== STAFF =====
+        function renderStaff() {
+            const tbody = document.getElementById('staff-tbody');
+            const empty = document.getElementById('staff-empty');
+            const search = (document.getElementById('staff-search')?.value || '').toLowerCase();
+
+            let entries = Object.entries(employees);
+            if (search) {
+                entries = entries.filter(([, e]) =>
+                    (e.code || '').toLowerCase().includes(search) || (e.name || '').toLowerCase().includes(search)
+                );
+            }
+
+            if (!entries.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+            empty.style.display = 'none';
+
+            tbody.innerHTML = entries.sort((a, b) => (a[1].code || '').localeCompare(b[1].code || '')).map(([id, e], i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td><strong>${esc(e.code || '')}</strong></td>
+      <td>${esc(e.name || '')}</td>
+      <td><span class="badge ${e.active ? 'badge-active' : 'badge-inactive'}">${e.active ? 'Đang làm' : 'Đã nghỉ'}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editStaff('${id}')">✏️</button>
+      </td>
+    </tr>
+  `).join('');
+        }
+
+        function showAddStaffModal() {
+            editingStaffId = null;
+            document.getElementById('modal-title').textContent = '➕ Thêm nhân viên';
+            document.getElementById('m-code').value = '';
+            document.getElementById('m-name').value = '';
+            document.getElementById('m-active').value = 'true';
+            document.getElementById('m-code').disabled = false;
+            document.getElementById('staff-modal').classList.remove('hidden');
+        }
+
+        function editStaff(id) {
+            editingStaffId = id;
+            const e = employees[id];
+            document.getElementById('modal-title').textContent = '✏️ Sửa nhân viên';
+            document.getElementById('m-code').value = e.code || '';
+            document.getElementById('m-name').value = e.name || '';
+            document.getElementById('m-active').value = String(e.active);
+            document.getElementById('m-code').disabled = true;
+            document.getElementById('staff-modal').classList.remove('hidden');
+        }
+
+        function closeStaffModal() { document.getElementById('staff-modal').classList.add('hidden'); }
+
+        async function saveStaff() {
+            const code = document.getElementById('m-code').value.trim();
+            const name = document.getElementById('m-name').value.trim();
+            const active = document.getElementById('m-active').value === 'true';
+            if (!code || !name) { alert('Vui lòng nhập đủ thông tin!'); return; }
+
+            if (editingStaffId) {
+                await db.ref('employees/' + editingStaffId).update({ name, active });
+            } else {
+                // Check duplicate code
+                const exists = Object.values(employees).find(e => (e.code || '').toUpperCase() === code.toUpperCase());
+                if (exists) { alert('Mã "' + code + '" đã tồn tại!'); return; }
+                const id = 'emp_' + Date.now().toString(36);
+                await db.ref('employees/' + id).set({ code: code.toUpperCase(), name, active: true });
+            }
+            closeStaffModal();
+            toast('✅ Đã lưu nhân viên');
+        }
+
+        async function bulkAddStaff() {
+            const text = document.getElementById('bulk-staff').value.trim();
+            if (!text) return;
+            const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+            let count = 0;
+            for (const line of lines) {
+                const parts = line.split(',').map(s => s.trim());
+                if (parts.length < 2) continue;
+                const [code, name] = parts;
+                const exists = Object.values(employees).find(e => (e.code || '').toUpperCase() === code.toUpperCase());
+                if (exists) continue;
+                const id = 'emp_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+                await db.ref('employees/' + id).set({ code: code.toUpperCase(), name, active: true });
+                count++;
+            }
+            document.getElementById('bulk-staff').value = '';
+            toast('✅ Đã thêm ' + count + ' nhân viên');
+        }
+
+        // ===== STATS =====
+        function loadStats() {
+            const mode = document.getElementById('stats-mode').value;
+            const from = document.getElementById('stats-from').value;
+            const to = document.getElementById('stats-to').value;
+            if (!from || !to) return;
+
+            // Collect dates in range
+            const dates = [];
+            const d = new Date(from);
+            const end = new Date(to);
+            while (d <= end) {
+                dates.push(d.toISOString().split('T')[0]);
+                d.setDate(d.getDate() + 1);
+            }
+
+            // Gather data
+            let totalOrders = 0, totalPicked = 0;
+            const dailyData = [];
+
+            dates.forEach(date => {
+                const orders = allOrders[date] || {};
+                const entries = Object.entries(orders);
+                const count = entries.length;
+                const picked = entries.filter(([, o]) => o.pickedUp).length;
+                totalOrders += count;
+                totalPicked += picked;
+                dailyData.push({ date, count, picked, orders: entries });
+            });
+
+            // Summary
+            document.getElementById('stats-summary').innerHTML = `
+    <div class="stat-card"><div class="num">${dates.length}</div><div class="label">Số ngày</div></div>
+    <div class="stat-card"><div class="num">${totalOrders}</div><div class="label">Tổng đặt</div></div>
+    <div class="stat-card"><div class="num">${totalPicked}</div><div class="label">Đã lấy</div></div>
+    <div class="stat-card"><div class="num">${totalOrders ? Math.round(totalOrders / dates.length) : 0}</div><div class="label">TB/ngày</div></div>
+  `;
+
+            const thead = document.getElementById('stats-thead');
+            const tbody = document.getElementById('stats-tbody');
+            const empty = document.getElementById('stats-empty');
+
+            if (mode === 'day') {
+                thead.innerHTML = '<tr><th>Ngày</th><th>Tổng đặt</th><th>Đã lấy</th><th>Chưa lấy</th></tr>';
+                tbody.innerHTML = dailyData.map(d => `
+      <tr><td>${d.date}</td><td><strong>${d.count}</strong></td>
+      <td>${d.picked}</td><td>${d.count - d.picked}</td></tr>
+    `).join('');
+            } else if (mode === 'week') {
+                // Group by week
+                const weeks = {};
+                dailyData.forEach(d => {
+                    const dt = new Date(d.date);
+                    const weekStart = new Date(dt); weekStart.setDate(dt.getDate() - dt.getDay() + 1);
+                    const key = weekStart.toISOString().split('T')[0];
+                    if (!weeks[key]) weeks[key] = { count: 0, picked: 0 };
+                    weeks[key].count += d.count;
+                    weeks[key].picked += d.picked;
+                });
+                thead.innerHTML = '<tr><th>Tuần bắt đầu</th><th>Tổng đặt</th><th>Đã lấy</th><th>Chưa lấy</th></tr>';
+                tbody.innerHTML = Object.entries(weeks).map(([w, d]) => `
+      <tr><td>${w}</td><td><strong>${d.count}</strong></td>
+      <td>${d.picked}</td><td>${d.count - d.picked}</td></tr>
+    `).join('');
+            } else {
+                // Group by month
+                const months = {};
+                dailyData.forEach(d => {
+                    const key = d.date.substring(0, 7);
+                    if (!months[key]) months[key] = { count: 0, picked: 0 };
+                    months[key].count += d.count;
+                    months[key].picked += d.picked;
+                });
+                thead.innerHTML = '<tr><th>Tháng</th><th>Tổng đặt</th><th>Đã lấy</th><th>Chưa lấy</th></tr>';
+                tbody.innerHTML = Object.entries(months).map(([m, d]) => `
+      <tr><td>${m}</td><td><strong>${d.count}</strong></td>
+      <td>${d.picked}</td><td>${d.count - d.picked}</td></tr>
+    `).join('');
+            }
+
+            empty.style.display = tbody.innerHTML ? 'none' : '';
+        }
+
+        // ===== SETTINGS =====
+        async function saveSettings() {
+            const deadline = document.getElementById('set-deadline').value;
+            await db.ref('settings/deadline').set(deadline);
+            toast('✅ Đã lưu cài đặt! Chốt đặt lúc ' + deadline);
+        }
+
+        async function clearTodayOrders() {
+            const label = viewDate === getToday() ? 'hôm nay' : viewDate;
+            if (!confirm('⚠️ XOÁ TẤT CẢ đơn đặt cơm ngày ' + label + '? Không thể hoàn tác!')) return;
+            await db.ref('orders/' + viewDate).remove();
+            toast('🗑️ Đã xoá tất cả đơn ngày ' + label);
+        }
+
+        // ===== EXCEL EXPORT =====
+        function exportDayExcel() {
+            const entries = Object.entries(viewDateOrders);
+            if (!entries.length) { alert('Chưa có đơn để xuất!'); return; }
+
+            const data = entries.sort((a, b) => (a[1].time || 0) - (b[1].time || 0)).map(([empId, o], i) => ({
+                'STT': i + 1,
+                'Mã NV': o.empCode || '',
+                'Họ tên': o.empName || '',
+                'Món ăn': o.dishName || '',
+                'Giờ đặt': o.time ? new Date(o.time).toLocaleTimeString('vi-VN') : '',
+                'Đã lấy': o.pickedUp ? 'Đã lấy' : 'Chưa lấy',
+                'Lấy hộ bởi': o.pickedBy || ''
+            }));
+
+            // Add dish summary sheet
+            const breakdown = {};
+            entries.forEach(([, o]) => {
+                const dn = o.dishName || 'Không rõ';
+                breakdown[dn] = (breakdown[dn] || 0) + 1;
+            });
+            const summaryData = Object.entries(breakdown).map(([name, count], i) => ({
+                'STT': i + 1, 'Món ăn': name, 'Số lượng': count
+            }));
+            summaryData.push({ 'STT': '', 'Món ăn': 'TỔNG CỘNG', 'Số lượng': entries.length });
+
+            const wb = XLSX.utils.book_new();
+            const ws1 = XLSX.utils.json_to_sheet(summaryData);
+            ws1['!cols'] = [{ wch: 5 }, { wch: 40 }, { wch: 12 }];
+            XLSX.utils.book_append_sheet(wb, ws1, 'Tổng hợp món');
+
+            const ws2 = XLSX.utils.json_to_sheet(data);
+            ws2['!cols'] = [{ wch: 5 }, { wch: 10 }, { wch: 22 }, { wch: 35 }, { wch: 10 }, { wch: 12 }, { wch: 18 }];
+            XLSX.utils.book_append_sheet(wb, ws2, 'Chi tiết');
+
+            XLSX.writeFile(wb, 'dat-com-' + viewDate + '.xlsx');
+            toast('📥 Đã xuất Excel ngày ' + viewDate);
+        }
+
+        function exportStaffExcel() {
+            const entries = Object.entries(employees);
+            if (!entries.length) { alert('Chưa có nhân viên!'); return; }
+
+            const data = entries.sort((a, b) => (a[1].code || '').localeCompare(b[1].code || '')).map(([id, e], i) => ({
+                'STT': i + 1,
+                'Mã NV': e.code || '',
+                'Họ tên': e.name || '',
+                'Trạng thái': e.active ? 'Đang làm' : 'Đã nghỉ'
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            ws['!cols'] = [{ wch: 5 }, { wch: 12 }, { wch: 25 }, { wch: 14 }];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Nhân viên');
+            XLSX.writeFile(wb, 'nhan-vien.xlsx');
+            toast('📥 Đã xuất danh sách nhân viên!');
+        }
+
+        function exportStatsExcel() {
+            const from = document.getElementById('stats-from').value;
+            const to = document.getElementById('stats-to').value;
+            if (!from || !to) { alert('Chọn khoảng thời gian!'); return; }
+
+            const dates = [];
+            const d = new Date(from);
+            const end = new Date(to);
+            while (d <= end) { dates.push(d.toISOString().split('T')[0]); d.setDate(d.getDate() + 1); }
+
+            // Detail sheet - all orders
+            const detailData = [];
+            dates.forEach(date => {
+                const orders = allOrders[date] || {};
+                Object.entries(orders).forEach(([empId, o]) => {
+                    detailData.push({
+                        'Ngày': date,
+                        'Mã NV': o.empCode || '',
+                        'Họ tên': o.empName || '',
+                        'Món ăn': o.dishName || '',
+                        'Đã lấy': o.pickedUp ? 'Đã lấy' : 'Chưa lấy',
+                        'Lấy hộ': o.pickedBy || ''
+                    });
+                });
+            });
+
+            // Summary sheet
+            const summaryData = dates.map(date => {
+                const orders = allOrders[date] || {};
+                const entries = Object.entries(orders);
+                return {
+                    'Ngày': date,
+                    'Tổng đặt': entries.length,
+                    'Đã lấy': entries.filter(([, o]) => o.pickedUp).length,
+                    'Chưa lấy': entries.filter(([, o]) => !o.pickedUp).length
+                };
+            });
+
+            const wb = XLSX.utils.book_new();
+
+            const ws1 = XLSX.utils.json_to_sheet(summaryData);
+            ws1['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 10 }];
+            XLSX.utils.book_append_sheet(wb, ws1, 'Tổng hợp');
+
+            if (detailData.length) {
+                const ws2 = XLSX.utils.json_to_sheet(detailData);
+                ws2['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 22 }, { wch: 35 }, { wch: 10 }, { wch: 18 }];
+                XLSX.utils.book_append_sheet(wb, ws2, 'Chi tiết');
+            }
+
+            XLSX.writeFile(wb, 'thong-ke-' + from + '-den-' + to + '.xlsx');
+            toast('📥 Đã xuất Excel thống kê!');
+        }
+
+        // ===== TOAST =====
+        function toast(msg) {
+            const old = document.querySelector('.toast');
+            if (old) old.remove();
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+    </script>
+</body>
+
+</html>
