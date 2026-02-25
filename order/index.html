@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🍱 Đặt Cơm Trưa</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --bg: #f5f0eb;
+            --card: #fff;
+            --primary: #e07a2f;
+            --primary-light: #fdf0e4;
+            --primary-dark: #c46820;
+            --text: #2d2a26;
+            --dim: #8c857c;
+            --border: #e8e2db;
+            --success: #3a9d5c;
+            --success-light: #e8f5ec;
+            --danger: #d64040;
+            --radius: 14px;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #e07a2f, #d4692a);
+            color: #fff;
+            padding: 28px 20px 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: var(--bg);
+            border-radius: 50% 50% 0 0;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            font-weight: 300
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 16px 30px
+        }
+
+        /* Date banner */
+        .date-banner {
+            text-align: center;
+            padding: 16px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            color: var(--dim);
+            font-size: 0.9rem;
+        }
+
+        .date-banner .day {
+            font-size: 1.1rem;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--dim);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Form */
+        .input-group {
+            margin-bottom: 14px;
+            position: relative
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--dim);
+            margin-bottom: 6px;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--text);
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(224, 122, 47, 0.12);
+        }
+
+        .input-group input:disabled {
+            background: #f5f2ef;
+            color: var(--dim)
+        }
+
+        .input-group .hint {
+            font-size: 0.75rem;
+            color: var(--dim);
+            margin-top: 4px
+        }
+
+        .input-group .matched {
+            font-size: 0.82rem;
+            color: var(--success);
+            margin-top: 6px;
+            font-weight: 600;
+            display: none;
+            padding: 8px 12px;
+            background: var(--success-light);
+            border-radius: 8px;
+        }
+
+        .input-group .matched.show {
+            display: block
+        }
+
+        /* Tabs for ID/Name */
+        .id-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 14px;
+            background: #f5f2ef;
+            border-radius: 10px;
+            padding: 4px;
+        }
+
+        .id-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--dim);
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .id-tab.active {
+            background: #fff;
+            color: var(--primary);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08)
+        }
+
+        /* Menu items */
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            border-color: var(--primary);
+            background: var(--primary-light)
+        }
+
+        .menu-item.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(224, 122, 47, 0.12);
+        }
+
+        .menu-item .radio {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .menu-item.selected .radio {
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+
+        .menu-item.selected .radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fff;
+        }
+
+        .menu-item .info {
+            flex: 1
+        }
+
+        .menu-item .dish-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 2px
+        }
+
+        .menu-item .dish-count {
+            font-size: 0.78rem;
+            color: var(--dim)
+        }
+
+        .menu-item .dish-num {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--primary);
+            min-width: 28px;
+            text-align: center;
+        }
+
+        /* Button */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(224, 122, 47, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px)
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important
+        }
+
+        /* States */
+        .closed-banner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background: #fff3f3;
+            border: 2px solid #ffd4d4;
+            border-radius: var(--radius);
+            color: var(--danger);
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .closed-banner.show {
+            display: block
+        }
+
+        .already-ordered {
+            display: none;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .already-ordered.show {
+            display: block
+        }
+
+        .already-ordered .check {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 16px;
+            color: #fff;
+        }
+
+        .already-ordered h3 {
+            color: var(--success);
+            margin-bottom: 6px;
+            font-size: 1.1rem
+        }
+
+        .already-ordered p {
+            color: var(--dim);
+            font-size: 0.9rem
+        }
+
+        .already-ordered .order-detail {
+            margin-top: 16px;
+            padding: 14px;
+            background: var(--success-light);
+            border-radius: 10px;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .success-view {
+            display: none;
+            text-align: center;
+            padding: 30px 20px;
+            animation: fadeUp 0.4s ease;
+        }
+
+        .success-view.show {
+            display: block
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .success-view .check {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 16px;
+            color: #fff;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0)
+            }
+
+            100% {
+                transform: scale(1)
+            }
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--dim)
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .no-menu {
+            text-align: center;
+            padding: 30px;
+            color: var(--dim);
+        }
+
+        .no-menu .icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px
+        }
+
+        .order-stats {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .stat-box {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-box .num {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--primary)
+        }
+
+        .stat-box .label {
+            font-size: 0.72rem;
+            color: var(--dim);
+            font-weight: 600;
+            margin-top: 2px
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>🍱 Đặt Cơm Trưa</h1>
+        <p>Chọn món ăn hôm nay</p>
+    </div>
+
+    <div class="container">
+        <div class="date-banner">
+            <div class="day" id="date-display">--</div>
+            <div id="deadline-display">Chốt đặt lúc: --:--</div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading-view">
+            <div class="card" style="text-align:center;padding:40px">
+                <div class="spinner"></div>
+                <p style="color:var(--dim);font-size:0.9rem">Đang kết nối...</p>
+            </div>
+        </div>
+
+        <!-- Closed banner -->
+        <div class="closed-banner" id="closed-banner">
+            ⏰ Đã quá giờ đặt cơm hôm nay!<br>
+            <span style="font-weight:400;font-size:0.85rem">Vui lòng đặt vào ngày mai.</span>
+        </div>
+
+        <!-- Main form -->
+        <div id="main-form" style="display:none">
+
+            <!-- Step 1: Identify -->
+            <div class="card" id="step-identify">
+                <div class="card-title">👤 Bước 1 — Xác nhận thông tin</div>
+
+                <div class="id-tabs">
+                    <button class="id-tab active" onclick="switchIdMode('code')">Mã nhân viên</button>
+                    <button class="id-tab" onclick="switchIdMode('name')">Họ và tên</button>
+                </div>
+
+                <div class="input-group" id="code-group">
+                    <label>Mã nhân viên</label>
+                    <input type="text" id="emp-code" placeholder="Ví dụ: NV001" oninput="lookupEmployee('code')">
+                </div>
+
+                <div class="input-group" id="name-group" style="display:none">
+                    <label>Họ và tên (đầy đủ)</label>
+                    <input type="text" id="emp-name" placeholder="Ví dụ: Nguyễn Văn A" oninput="lookupEmployee('name')">
+                </div>
+
+                <div class="input-group">
+                    <div class="matched" id="match-result">
+                        ✅ <span id="match-text"></span>
+                    </div>
+                    <div class="matched" id="match-error" style="background:#fff3f3;color:var(--danger)">
+                        ❌ <span id="error-text"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Choose meal -->
+            <div class="card" id="step-menu" style="display:none">
+                <div class="card-title">🍽️ Bước 2 — Chọn món ăn</div>
+
+                <div class="no-menu" id="no-menu" style="display:none">
+                    <div class="icon">📋</div>
+                    <p>Chưa có menu hôm nay.<br>Vui lòng chờ admin cập nhật.</p>
+                </div>
+
+                <div class="menu-list" id="menu-list"></div>
+            </div>
+
+            <!-- Order button -->
+            <button class="btn btn-primary" id="order-btn" onclick="submitOrder()" disabled style="display:none">
+                🍱 Đặt Cơm
+            </button>
+        </div>
+
+        <!-- Already ordered view -->
+        <div class="already-ordered" id="already-ordered">
+            <div class="check">✓</div>
+            <h3>Bạn đã đặt cơm hôm nay!</h3>
+            <p>Mỗi người chỉ được đặt 1 lần/ngày</p>
+            <div class="order-detail" id="order-detail"></div>
+        </div>
+
+        <!-- Success view -->
+        <div class="success-view" id="success-view">
+            <div class="check">✓</div>
+            <h3 style="color:var(--success);font-size:1.2rem;margin-bottom:6px">Đặt cơm thành công!</h3>
+            <p style="color:var(--dim)" id="success-detail"></p>
+        </div>
+
+        <!-- Order stats -->
+        <div class="order-stats" id="order-stats" style="display:none">
+            <div class="stat-box">
+                <div class="num" id="stat-total">0</div>
+                <div class="label">Tổng đặt</div>
+            </div>
+            <div class="stat-box">
+                <div class="num" id="stat-menus">0</div>
+                <div class="label">Số món</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script>
+        // ╔══════════════════════════════════════════════════════════╗
+        // ║  ⚠️  THAY THÔNG TIN FIREBASE VÀO ĐÂY                     ║
+        // ╚══════════════════════════════════════════════════════════╝
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOE5tHOCnxt8OJ7pqrQkJDbv8omtjz7WU",
+            authDomain: "book-com-trua.firebaseapp.com",
+            projectId: "book-com-trua",
+            storageBucket: "book-com-trua.firebasestorage.app",
+            messagingSenderId: "274863804638",
+            appId: "1:274863804638:web:66dfb24abfc8bdb0fa324f",
+            measurementId: "G-JW7E6Z7SR7"
+        };
+
+        // ============================================================
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ===== STATE =====
+        let employees = {};    // {empId: {code, name, active}}
+        let todayMenu = [];    // [{id, name}]
+        let todayOrders = {};  // {empId: {dish, dishName, time, pickedUp, pickedBy}}
+        let settings = { deadline: '10:00' };
+        let matchedEmpId = null;
+        let selectedDish = null;
+
+        // ===== DATE =====
+        function getToday() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+
+        function getDisplayDate() {
+            const d = new Date();
+            const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+            return days[d.getDay()] + ', ' + d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+        }
+
+        function isPastDeadline() {
+            const now = new Date();
+            const [h, m] = settings.deadline.split(':').map(Number);
+            const dl = new Date();
+            dl.setHours(h, m, 0, 0);
+            return now > dl;
+        }
+
+        // ===== INIT =====
+        function init() {
+            document.getElementById('date-display').textContent = getDisplayDate();
+
+            // Load settings
+            db.ref('settings').on('value', snap => {
+                const d = snap.val();
+                if (d) {
+                    if (d.deadline) settings.deadline = d.deadline;
+                }
+                document.getElementById('deadline-display').textContent = 'Chốt đặt lúc: ' + settings.deadline;
+                checkDeadline();
+            });
+
+            // Load employees
+            db.ref('employees').on('value', snap => {
+                employees = snap.val() || {};
+            });
+
+            // Load today menu
+            db.ref('menus/' + getToday()).on('value', snap => {
+                const d = snap.val();
+                todayMenu = d ? Object.entries(d).map(([id, v]) => ({ id, name: typeof v === 'string' ? v : v.name })) : [];
+                renderMenu();
+                document.getElementById('loading-view').style.display = 'none';
+                checkDeadline();
+            });
+
+            // Load today orders
+            db.ref('orders/' + getToday()).on('value', snap => {
+                todayOrders = snap.val() || {};
+                updateStats();
+                renderMenu(); // Update counts
+                // Check if current matched employee already ordered
+                if (matchedEmpId && todayOrders[matchedEmpId]) {
+                    showAlreadyOrdered(matchedEmpId);
+                }
+            });
+        }
+
+        function checkDeadline() {
+            const banner = document.getElementById('closed-banner');
+            const form = document.getElementById('main-form');
+            if (isPastDeadline()) {
+                banner.classList.add('show');
+                form.style.display = 'none';
+                // But still show stats
+                document.getElementById('order-stats').style.display = 'flex';
+            } else if (todayMenu.length > 0) {
+                banner.classList.remove('show');
+                form.style.display = '';
+            } else {
+                banner.classList.remove('show');
+                form.style.display = '';
+            }
+        }
+
+        // ===== ID MODE =====
+        function switchIdMode(mode) {
+            document.querySelectorAll('.id-tab').forEach((t, i) => t.classList.toggle('active', (mode === 'code' ? 0 : 1) === i));
+            document.getElementById('code-group').style.display = mode === 'code' ? '' : 'none';
+            document.getElementById('name-group').style.display = mode === 'name' ? '' : 'none';
+            // Reset
+            matchedEmpId = null;
+            document.getElementById('match-result').classList.remove('show');
+            document.getElementById('match-error').classList.remove('show');
+            document.getElementById('step-menu').style.display = 'none';
+            document.getElementById('order-btn').style.display = 'none';
+            selectedDish = null;
+        }
+
+        // ===== LOOKUP =====
+        let lookupTimer = null;
+        function lookupEmployee(mode) {
+            clearTimeout(lookupTimer);
+            lookupTimer = setTimeout(() => doLookup(mode), 300);
+        }
+
+        function doLookup(mode) {
+            const matchEl = document.getElementById('match-result');
+            const errorEl = document.getElementById('match-error');
+            matchEl.classList.remove('show');
+            errorEl.classList.remove('show');
+            matchedEmpId = null;
+            document.getElementById('step-menu').style.display = 'none';
+            document.getElementById('order-btn').style.display = 'none';
+
+            let input;
+            if (mode === 'code') {
+                input = document.getElementById('emp-code').value.trim().toUpperCase();
+                if (!input) return;
+                // Find by code
+                for (const [id, emp] of Object.entries(employees)) {
+                    if ((emp.code || '').toUpperCase() === input) {
+                        if (!emp.active) {
+                            errorEl.querySelector('span').textContent = 'Nhân viên ' + emp.name + ' đã nghỉ việc';
+                            errorEl.classList.add('show');
+                            return;
+                        }
+                        matchedEmpId = id;
+                        matchEl.querySelector('span').textContent = emp.name + ' (' + emp.code + ')';
+                        matchEl.classList.add('show');
+                        showMenuStep(id);
+                        return;
+                    }
+                }
+                errorEl.querySelector('span').textContent = 'Không tìm thấy mã "' + input + '"';
+                errorEl.classList.add('show');
+            } else {
+                input = document.getElementById('emp-name').value.trim();
+                if (input.length < 2) return;
+                const lower = input.toLowerCase();
+                for (const [id, emp] of Object.entries(employees)) {
+                    if ((emp.name || '').toLowerCase() === lower) {
+                        if (!emp.active) {
+                            errorEl.querySelector('span').textContent = 'Nhân viên ' + emp.name + ' đã nghỉ việc';
+                            errorEl.classList.add('show');
+                            return;
+                        }
+                        matchedEmpId = id;
+                        matchEl.querySelector('span').textContent = emp.name + ' (' + emp.code + ')';
+                        matchEl.classList.add('show');
+                        showMenuStep(id);
+                        return;
+                    }
+                }
+                // Partial match suggestions
+                const partials = Object.entries(employees).filter(([, e]) => e.active && (e.name || '').toLowerCase().includes(lower));
+                if (partials.length > 0 && partials.length <= 3) {
+                    errorEl.querySelector('span').textContent = 'Bạn có phải: ' + partials.map(([, e]) => e.name).join(', ') + '? (Nhập đầy đủ họ tên)';
+                    errorEl.style.background = '#fffbe6';
+                    errorEl.style.color = '#b8860b';
+                    errorEl.classList.add('show');
+                } else if (input.length >= 3) {
+                    errorEl.style.background = '#fff3f3';
+                    errorEl.style.color = 'var(--danger)';
+                    errorEl.querySelector('span').textContent = 'Không tìm thấy "' + input + '"';
+                    errorEl.classList.add('show');
+                }
+            }
+        }
+
+        function showMenuStep(empId) {
+            // Check if already ordered today
+            if (todayOrders[empId]) {
+                showAlreadyOrdered(empId);
+                return;
+            }
+
+            document.getElementById('step-menu').style.display = '';
+            document.getElementById('order-btn').style.display = '';
+            document.getElementById('order-btn').disabled = true;
+            selectedDish = null;
+
+            if (todayMenu.length === 0) {
+                document.getElementById('no-menu').style.display = '';
+                document.getElementById('order-btn').style.display = 'none';
+            } else {
+                document.getElementById('no-menu').style.display = 'none';
+            }
+
+            // Clear previous selection
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('selected'));
+        }
+
+        function showAlreadyOrdered(empId) {
+            const order = todayOrders[empId];
+            const emp = employees[empId];
+            document.getElementById('main-form').style.display = 'none';
+            document.getElementById('already-ordered').classList.add('show');
+            document.getElementById('order-detail').textContent =
+                '🍽️ ' + (order.dishName || 'Không rõ') +
+                (order.pickedUp ? ' ✅ Đã lấy' : ' ⏳ Chưa lấy');
+        }
+
+        // ===== MENU =====
+        function renderMenu() {
+            const list = document.getElementById('menu-list');
+            if (todayMenu.length === 0) {
+                list.innerHTML = '';
+                return;
+            }
+
+            list.innerHTML = todayMenu.map(item => {
+                // Count orders for this dish
+                const count = Object.values(todayOrders).filter(o => o.dish === item.id).length;
+                return `<div class="menu-item" data-id="${item.id}" onclick="selectDish('${item.id}')">
+      <div class="radio"></div>
+      <div class="info">
+        <div class="dish-name">${esc(item.name)}</div>
+        <div class="dish-count">${count} người đã đặt</div>
+      </div>
+      <div class="dish-num">${count}</div>
+    </div>`;
+            }).join('');
+
+            // Restore selection if any
+            if (selectedDish) {
+                const el = list.querySelector(`[data-id="${selectedDish}"]`);
+                if (el) el.classList.add('selected');
+            }
+        }
+
+        function selectDish(id) {
+            selectedDish = id;
+            document.querySelectorAll('.menu-item').forEach(el => {
+                el.classList.toggle('selected', el.dataset.id === id);
+            });
+            document.getElementById('order-btn').disabled = false;
+        }
+
+        // ===== SUBMIT =====
+        async function submitOrder() {
+            if (!matchedEmpId || !selectedDish) return;
+            if (isPastDeadline()) { alert('Đã quá giờ đặt cơm!'); return; }
+            if (todayOrders[matchedEmpId]) { showAlreadyOrdered(matchedEmpId); return; }
+
+            const emp = employees[matchedEmpId];
+            const dish = todayMenu.find(m => m.id === selectedDish);
+            const btn = document.getElementById('order-btn');
+            btn.disabled = true;
+            btn.innerHTML = 'Đang đặt...';
+
+            try {
+                await db.ref('orders/' + getToday() + '/' + matchedEmpId).set({
+                    dish: selectedDish,
+                    dishName: dish ? dish.name : '',
+                    empCode: emp.code,
+                    empName: emp.name,
+                    time: firebase.database.ServerValue.TIMESTAMP,
+                    pickedUp: false,
+                    pickedBy: ''
+                });
+
+                document.getElementById('main-form').style.display = 'none';
+                document.getElementById('success-view').classList.add('show');
+                document.getElementById('success-detail').textContent =
+                    emp.name + ' — ' + (dish ? dish.name : '');
+                document.getElementById('order-stats').style.display = 'flex';
+            } catch (e) {
+                alert('Lỗi: ' + e.message);
+                btn.disabled = false;
+                btn.innerHTML = '🍱 Đặt Cơm';
+            }
+        }
+
+        // ===== STATS =====
+        function updateStats() {
+            const total = Object.keys(todayOrders).length;
+            const dishes = new Set(Object.values(todayOrders).map(o => o.dish));
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-menus').textContent = dishes.size;
+            if (total > 0) document.getElementById('order-stats').style.display = 'flex';
+        }
+
+        function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        init();
+    </script>
+</body>
+
+</html>
