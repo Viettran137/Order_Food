@@ -623,7 +623,7 @@
                 onkeydown="if(event.key==='Enter')checkLogin()">
             <div class="login-err" id="login-err">❌ Sai mật khẩu!</div>
             <button class="btn btn-primary btn-full" onclick="checkLogin()">🚀 Đăng Nhập</button>
-            <p style="margin-top:14px;font-size:0.75rem;color:var(--dim)">Mật khẩu mặc định: admin123</p>
+            <p style="margin-top:14px;font-size:0.75rem;color:var(--dim)">Connect Admin Viettran to more information</p>
         </div>
     </div>
 
@@ -725,9 +725,23 @@
 
         <!-- ==================== MENU PANEL ==================== -->
         <div id="panel-menu" class="panel">
+            <!-- Menu Date Picker -->
+            <div class="card" style="padding:14px 20px">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <span style="font-weight:700;font-size:0.9rem">📅 Menu ngày:</span>
+                    <button class="btn btn-sm btn-outline" onclick="shiftMenuDate(-1)">◀ Hôm trước</button>
+                    <input type="date" id="menu-date" onchange="changeMenuDate()"
+                        style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-family:'Be Vietnam Pro',sans-serif;font-size:0.85rem;font-weight:600;outline:none">
+                    <button class="btn btn-sm btn-outline" onclick="shiftMenuDate(1)">Hôm sau ▶</button>
+                    <button class="btn btn-sm btn-primary" onclick="goTodayMenu()">Hôm nay</button>
+                    <span style="font-weight:600;color:var(--dim);font-size:0.85rem;margin-left:auto"
+                        id="menu-date-label"></span>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-head">
-                    <div class="card-title">🍽️ Menu hôm nay — <span id="menu-date-label"></span></div>
+                    <div class="card-title">🍽️ Menu — <span id="menu-card-date-label"></span></div>
                 </div>
 
                 <div class="form-inline mb-16">
@@ -955,8 +969,8 @@
         const db = firebase.database();
 
         // ===== LOGIN =====
-        // SHA-256 of "admin123"
-        let PASSWORD_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
+        // SHA-256 of "admin123" this is default password and you need to change - Ahihi
+        let PASSWORD_HASH = '5bb5b89bac8940a06515efe800d6fd10bda1557c1d4c6860d9c50e93166c4ee5';
 
         // Load password from Firebase if set
         db.ref('settings/passwordHash').on('value', snap => {
@@ -1011,6 +1025,8 @@
         let viewDate = getToday();  // currently viewed date in orders panel
         let viewDateListener = null; // Firebase listener for viewed date orders
         let viewMenuListener = null; // Firebase listener for viewed date menu
+        let menuDate = getToday();   // currently selected date in menu panel
+        let menuDateListener = null; // Firebase listener for menu panel date
 
         function getToday() {
             const d = new Date();
@@ -1043,16 +1059,20 @@
             renderStaff();
         });
 
-        // Menu for today (used by menu panel)
-        db.ref('menus/' + getToday()).on('value', snap => {
-            const d = snap.val();
-            // Only update menu panel (admin editing always edits today)
-            renderMenuAdmin(d);
-            // If viewing today, also refresh orders panel menu
-            if (viewDate === getToday()) {
-                viewDateMenu = d ? Object.entries(d).map(([id, v]) => ({ id, name: typeof v === 'string' ? v : v.name })) : [];
-            }
-        });
+        // Menu panel listener (dynamic date)
+        function listenMenuDate(date) {
+            if (menuDateListener) menuDateListener();
+            const menuRef = db.ref('menus/' + date);
+            const callback = menuRef.on('value', snap => {
+                const d = snap.val();
+                renderMenuAdmin(d);
+                // If viewing same date in orders panel, also refresh
+                if (viewDate === date) {
+                    viewDateMenu = d ? Object.entries(d).map(([id, v]) => ({ id, name: typeof v === 'string' ? v : v.name })) : [];
+                }
+            });
+            menuDateListener = () => menuRef.off('value', callback);
+        }
 
         // Load all orders for stats
         db.ref('orders').on('value', snap => {
@@ -1106,12 +1126,45 @@
             listenViewDate(viewDate);
         }
 
+        // ===== MENU DATE CONTROLS =====
+        function changeMenuDate() {
+            menuDate = document.getElementById('menu-date').value;
+            updateMenuDateLabel();
+            listenMenuDate(menuDate);
+        }
+
+        function shiftMenuDate(delta) {
+            const d = new Date(menuDate + 'T00:00:00');
+            d.setDate(d.getDate() + delta);
+            menuDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            document.getElementById('menu-date').value = menuDate;
+            updateMenuDateLabel();
+            listenMenuDate(menuDate);
+        }
+
+        function goTodayMenu() {
+            menuDate = getToday();
+            document.getElementById('menu-date').value = menuDate;
+            updateMenuDateLabel();
+            listenMenuDate(menuDate);
+        }
+
+        function updateMenuDateLabel() {
+            const label = formatDateVN(menuDate) + (menuDate === getToday() ? ' (hôm nay)' : '');
+            document.getElementById('menu-date-label').textContent = label;
+            document.getElementById('menu-card-date-label').textContent = label;
+        }
+
         // ===== INIT =====
         document.getElementById('top-date').textContent = getDisplayDate();
-        document.getElementById('menu-date-label').textContent = getDisplayDate();
         document.getElementById('view-date').value = getToday();
         document.getElementById('view-date-label').textContent = formatDateVN(getToday()) + ' (hôm nay)';
         listenViewDate(getToday());
+
+        // Init menu date picker
+        document.getElementById('menu-date').value = getToday();
+        updateMenuDateLabel();
+        listenMenuDate(getToday());
 
         // Default stats dates
         const today = new Date();
@@ -1284,10 +1337,10 @@
             if (!menuList.length) { list.innerHTML = ''; empty.style.display = ''; return; }
             empty.style.display = 'none';
 
-            // Get today's orders for count
-            const todayOrd = allOrders[getToday()] || {};
+            // Get orders for the selected menu date for count
+            const dateOrd = allOrders[menuDate] || {};
             const orderCounts = {};
-            Object.values(todayOrd).forEach(o => { orderCounts[o.dish] = (orderCounts[o.dish] || 0) + 1; });
+            Object.values(dateOrd).forEach(o => { orderCounts[o.dish] = (orderCounts[o.dish] || 0) + 1; });
 
             list.innerHTML = menuList.map((item, i) => `
     <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--primary-light);border-radius:10px;margin-bottom:8px">
@@ -1304,7 +1357,7 @@
             const name = input.value.trim();
             if (!name) return;
             const id = 'dish_' + Date.now().toString(36);
-            await db.ref('menus/' + getToday() + '/' + id).set(name);
+            await db.ref('menus/' + menuDate + '/' + id).set(name);
             input.value = ''; input.focus();
             toast('✅ Đã thêm: ' + name);
         }
@@ -1315,14 +1368,14 @@
             const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
             const updates = {};
             lines.forEach(name => { updates['dish_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5)] = name; });
-            await db.ref('menus/' + getToday()).update(updates);
+            await db.ref('menus/' + menuDate).update(updates);
             document.getElementById('bulk-dishes').value = '';
             toast('✅ Đã thêm ' + lines.length + ' món');
         }
 
         async function removeDish(id) {
             if (!confirm('Xoá món này?')) return;
-            await db.ref('menus/' + getToday() + '/' + id).remove();
+            await db.ref('menus/' + menuDate + '/' + id).remove();
         }
 
         async function copyMenuFrom() {
@@ -1336,8 +1389,8 @@
             Object.values(data).forEach(name => {
                 updates['dish_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5)] = typeof name === 'string' ? name : name.name;
             });
-            await db.ref('menus/' + getToday()).update(updates);
-            toast('✅ Đã copy menu từ ' + date);
+            await db.ref('menus/' + menuDate).update(updates);
+            toast('✅ Đã copy menu từ ' + date + ' sang ' + menuDate);
         }
 
         // ===== STAFF =====
